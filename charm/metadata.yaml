@@ -1,0 +1,13 @@
+name: designate-bind
+summary: BIND9 backend for Designate
+maintainer: OpenStack Charmers <openstack-charmers@lists.ubuntu.com>
+description: |
+ The Berkeley Internet Name Domain (BIND) implements an Internet domain
+ name server.  BIND is the most widely-used name server software on the
+ Internet, and is supported by the Internet Software Consortium, www.isc.org.
+categories:
+  - openstack
+subordinate: false
+provides:
+    dns-backend:
+        interface: bind-rndc

@@ -1,0 +1,12 @@
+options:
+  allowed_nets:
+    default: "p2p"
+    type: string
+    description:
+      list of allowed networks, with trailing semicolons"  e.g., "10.172.0.0/16; 10.10.0.0/18;"
+  forwarders:
+    default: ""
+    type: string
+    description: |
+      list of forwarders, with trailing semicolons:  e.g., "8.8.8.8; 10.1.1.1;"
+
