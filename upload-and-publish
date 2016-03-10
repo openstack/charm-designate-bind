@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# NOTE: relies on new charm publishing features
+
+set -ex
+
+owner=${1:-openstack-charmers-next}
+
+echo "Publishing designate-bind charm to charm store as $owner"
+
+charm upload build/trusty/designate-bind ~${owner}/designate-bind
+charm publish ~${owner}/designate-bind
+charm change-perm --set-read everyone ~${owner}/designate-bind
