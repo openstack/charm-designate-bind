@@ -16,3 +16,6 @@ subordinate: false
 provides:
   dns-backend:
     interface: bind-rndc
+peers:
+  cluster:
+    interface: openstack-ha
