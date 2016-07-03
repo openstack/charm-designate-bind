@@ -1,1 +1,1 @@
-includes: ['layer:openstack', 'interface:bind-rndc', 'interface:openstack-ha]
+includes: ['layer:openstack', 'interface:bind-rndc', 'interface:openstack-ha']

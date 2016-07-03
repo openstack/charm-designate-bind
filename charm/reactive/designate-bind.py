@@ -1,3 +1,4 @@
+import glob
 import os
 import time
 import subprocess
@@ -15,7 +16,7 @@ NAMED_OPTIONS = 'named.conf.options'
 NAMED_CONF = 'named.conf'
 RNDC_KEY = 'rndc.key'
 BIND_SERVICES = ['bind9']
-BIND_PACKAGES = ['bind9']
+BIND_PACKAGES = ['bind9', 'apache2']
 LEADERDB_SECRET_KEY = 'rndc_key'
 LEADERDB_SYNC_SRC_KEY = 'sync_src'
 LEADERDB_SYNC_TIME_KEY = 'sync_time'
@@ -53,23 +54,34 @@ def get_sync_time():
     return hookenv.leader_get(attribute=LEADERDB_SYNC_TIME_KEY)
 
 
+def create_zone_tarball(tarfile):
+    zone_files = []
+    for re in ['juju*', 'slave*', '*nzf']:
+        for _file in glob.glob('{}/{}'.format(ZONE_DIR, re)):
+            zone_files.append(os.path.basename(_file))
+    cmd = ['tar', 'zcvf', tarfile]
+    cmd.extend(zone_files)
+    subprocess.check_call(cmd, cwd=ZONE_DIR)
+
+
 def setup_sync():
-    sync_time = time.time()
+    hookenv.log('Setting up zone info for collection', level=hookenv.DEBUG)
+    sync_time = str(time.time())
     sync_dir = '{}/zone-syncs'.format(WWW_DIR, sync_time)
     try:
         os.mkdir(sync_dir, 0o755)
     except FileExistsError:
         os.chmod(sync_dir, 0o755)
+    unit_name = hookenv.local_unit().replace('/', '_')
+    touch_file = '{}/juju-zone-src-{}'.format(ZONE_DIR, unit_name)
+    open(touch_file, 'w+').close()
     # FIXME Try freezing DNS rather than stopping bind
     for service in BIND_SERVICES:
-        hookenv.service_stop(service)
-    # FIXME Sync just zone + nzf
+        host.service_stop(service)
     tar_file = '{}/{}.tar.gz'.format(sync_dir, sync_time)
-    subprocess.check_call(
-        ['tar', 'cvf', tar_file, 'slave*', '*nzf'],
-        cwd=ZONE_DIR)
+    create_zone_tarball(tar_file)
     for service in BIND_SERVICES:
-        hookenv.service_start(service)
+        host.service_start(service)
     set_sync_info(sync_time, '{}.tar.gz'.format(sync_time))
 
 
@@ -83,37 +95,38 @@ def set_sync_info(sync_time, sync_file):
 
 
 def request_sync(hacluster):
-    request_time = time.time()
-    hacluster.set_remote(CLUSTER_SYNC_KEY, request_time)
-    reactive.set_state('sync.request.sent', request_time)
+    request_time = str(time.time())
+    hacluster.send_all({CLUSTER_SYNC_KEY: request_time}, store_local=True)
+    reactive.set_state('sync.request.sent')
 
 
 @ch_decorators.retry_on_exception(3, base_delay=2,
                                   exc_type=subprocess.CalledProcessError)
 def wget_file(url, target_dir):
-        cmd = ['wget', url, '--retry-connrefused', '-t', '10', '-O',
-               target_dir]
-        subprocess.check_call(cmd)
+        cmd = ['wget', url, '--retry-connrefused', '-t', '10']
+        subprocess.check_call(cmd, cwd=ZONE_DIR)
 
 
-def retrieve_zones():
-    request_time = reactive.get_state('sync.request.sent')
+def retrieve_zones(cluster_relation=None):
+    if cluster_relation:
+        request_time = cluster_relation.retrieve_local(CLUSTER_SYNC_KEY)
     sync_time = hookenv.leader_get(LEADERDB_SYNC_TIME_KEY)
     if request_time and request_time > sync_time:
-        hookenv.log(('Request for sync sent but remote sync time is too old,'
-                     'defering until a more up to date target is available'),
+        hookenv.log(('Request for sync sent but remote sync time is too old, '
+                     'defering until a more up-to-date target is available'),
                     level=hookenv.WARNING)
     else:
         for service in BIND_SERVICES:
-            hookenv.service_stop(service)
+            host.service_stop(service)
         url = hookenv.leader_get(LEADERDB_SYNC_SRC_KEY)
         wget_file(url, ZONE_DIR)
         tar_file = url.split('/')[-1]
-        subprocess.check_call(['tar', 'xf', tar_file], cmd=ZONE_DIR)
+        subprocess.check_call(['tar', 'xf', tar_file], cwd=ZONE_DIR)
         os.remove('{}/{}'.format(ZONE_DIR, tar_file))
         for service in BIND_SERVICES:
-            hookenv.service_start(service)
+            host.service_start(service)
         reactive.remove_state('sync.request.sent')
+        reactive.set_state('zones.initialised')
 
 
 class DNSAdapter(adapters.OpenStackRelationAdapter):
@@ -194,9 +207,9 @@ def config_changed(*args):
 
 @reactive.when_not('sync.request.sent')
 @reactive.when_not('zones.initialised')
-@reactive.when_not('ha.connected')
+@reactive.when_not('cluster.connected')
 @reactive.when('installed')
-def provide_sync_target_alone(hacluster):
+def setup_sync_target_alone():
     if hookenv.is_leader():
         setup_sync()
         reactive.set_state('zones.initialised')
@@ -204,16 +217,16 @@ def provide_sync_target_alone(hacluster):
 
 @reactive.when_not('zones.initialised')
 @reactive.when('sync.request.sent')
-@reactive.when('ha.connected')
+@reactive.when('cluster.connected')
 def update_zones_from_peer(hacluster):
-    retrieve_zones()
+    retrieve_zones(hacluster)
 
 
 @reactive.when_not('sync.request.sent')
 @reactive.when_not('zones.initialised')
 @reactive.when('installed')
-@reactive.when('ha.connected')
-def provide_sync_target(hacluster):
+@reactive.when('cluster.connected')
+def check_zone_status(hacluster):
     # This unit has not been initialised yet since zones.initialised has not
     # been set.
 
@@ -221,7 +234,7 @@ def provide_sync_target(hacluster):
         if get_sync_time():
             # This unit is not the leader but a sync target has already been
             # set suggests this is a new unit which has been nominated as
-            # leader before
+            # leader early in its lifecycle.
             retrieve_zones()
         else:
             # This unit is the leader and no other unit has set up a sync
@@ -230,3 +243,19 @@ def provide_sync_target(hacluster):
             reactive.set_state('zones.initialised')
     else:
         request_sync(hacluster)
+
+
+@reactive.when('zones.initialised')
+@reactive.when('cluster.connected')
+def process_sync_requests(hacluster):
+    if hookenv.is_leader():
+        hookenv.log('Processing sync requests', level=hookenv.DEBUG)
+        sync_requests = hacluster.retrieve_remote(CLUSTER_SYNC_KEY)
+        max_time = 0
+        for req in sync_requests:
+            if float(req) > max_time:
+                max_time = float(req)
+        hookenv.log('Newest sync request: {}'.format(max_time),
+                    level=hookenv.DEBUG)
+        if max_time > float(get_sync_time()):
+            setup_sync()
