@@ -85,13 +85,14 @@ def setup_sync():
     DesignateBindCharm.singleton.setup_sync()
 
 
-def retrieve_zones():
+def retrieve_zones(cluster_relation=None):
     """Use the singleton from the DesignateBindCharm to retrieve the zone
     information and install it
 
+    :param hacluster: OpenstackHAPeers() interface class
     :returns: None
     """
-    DesignateBindCharm.singleton.retrieve_zones()
+    DesignateBindCharm.singleton.retrieve_zones(cluster_relation)
 
 
 def request_sync(hacluster):
@@ -108,6 +109,7 @@ def process_requests(hacluster):
     """Use the singleton from the DesignateBindCharm setup a sync target if
     requested
 
+    :param hacluster: OpenstackHAPeers() interface class
     :returns: None
     """
     DesignateBindCharm.singleton.process_requests(hacluster)
@@ -291,7 +293,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
             if hookenv.is_leader():
                 hookenv.log('Creating new secret as leader',
                             level=hookenv.DEBUG)
-                secret = self.generate_rndc_key(self)
+                secret = self.generate_rndc_key()
                 hookenv.leader_set({LEADERDB_SECRET_KEY: secret})
         return secret
 
@@ -322,7 +324,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         sync_dir = '{}/zone-syncs'.format(WWW_DIR, sync_time)
         try:
             os.mkdir(sync_dir, 0o755)
-        except os.FileExistsError:
+        except FileExistsError:
             os.chmod(sync_dir, 0o755)
         unit_name = hookenv.local_unit().replace('/', '_')
         touch_file = '{}/juju-zone-src-{}'.format(ZONE_DIR, unit_name)
@@ -395,13 +397,13 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
                          'available'),
                         level=hookenv.WARNING)
         else:
-            self.service_control('stop')
+            self.service_control('stop', ['bind9'])
             url = DesignateBindCharm.get_sync_src()
             self.wget_file(url, ZONE_DIR)
             tar_file = url.split('/')[-1]
             subprocess.check_call(['tar', 'xf', tar_file], cwd=ZONE_DIR)
             os.remove('{}/{}'.format(ZONE_DIR, tar_file))
-            self.service_control('start')
+            self.service_control('start', ['bind9'])
             reactive.remove_state('sync.request.sent')
             reactive.set_state('zones.initialised')
 
