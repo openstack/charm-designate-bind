@@ -3,3 +3,5 @@ tmp
 build
 layers
 interfaces
+__pycache__
+.testrepository

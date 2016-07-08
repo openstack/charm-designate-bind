@@ -19,7 +19,7 @@ LEADERDB_SYNC_SRC_KEY = 'sync_src'
 LEADERDB_SYNC_TIME_KEY = 'sync_time'
 CLUSTER_SYNC_KEY = 'sync_request'
 WWW_DIR = '/var/www/html'
-ZONE_DIR = '/var/cache/bind/'
+ZONE_DIR = '/var/cache/bind'
 
 
 def install():
@@ -311,6 +311,18 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         cmd.extend(zone_files)
         subprocess.check_call(cmd, cwd=ZONE_DIR)
 
+    def setup_sync_dir(self, sync_time):
+        sync_dir = '{}/zone-syncs'.format(WWW_DIR, sync_time)
+        try:
+            os.mkdir(sync_dir, 0o755)
+        except FileExistsError:
+            os.chmod(sync_dir, 0o755)
+
+    def create_sync_src_info_file(self):
+        unit_name = hookenv.local_unit().replace('/', '_')
+        touch_file = '{}/juju-zone-src-{}'.format(ZONE_DIR, unit_name)
+        open(touch_file, 'w+').close()
+
     def setup_sync(self):
         """Setup a sync target
 
@@ -321,14 +333,8 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         """
         hookenv.log('Setting up zone info for collection', level=hookenv.DEBUG)
         sync_time = str(time.time())
-        sync_dir = '{}/zone-syncs'.format(WWW_DIR, sync_time)
-        try:
-            os.mkdir(sync_dir, 0o755)
-        except FileExistsError:
-            os.chmod(sync_dir, 0o755)
-        unit_name = hookenv.local_unit().replace('/', '_')
-        touch_file = '{}/juju-zone-src-{}'.format(ZONE_DIR, unit_name)
-        open(touch_file, 'w+').close()
+        sync_dir = self.setup_sync_dir(sync_time)
+        self.create_sync_src_info_file()
         # FIXME Try freezing DNS rather than stopping bind
         self.service_control('stop', ['bind9'])
         tar_file = '{}/{}.tar.gz'.format(sync_dir, sync_time)
@@ -348,7 +354,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
             'start': host.service_start,
             'restart': host.service_restart,
         }
-        for service in self.services:
+        for service in services:
             cmds[cmd](service)
 
     def request_sync(self, hacluster):
@@ -373,6 +379,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         :param target_dir: Place file in this directory
         :returns: None
         """
+        print("{} {}".format(url, target_dir))
         cmd = ['wget', url, '--retry-connrefused', '-t', '10']
         subprocess.check_call(cmd, cwd=target_dir)
 
@@ -388,6 +395,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         :returns: None
         """
 
+        request_time = None
         if cluster_relation:
             request_time = cluster_relation.retrieve_local(CLUSTER_SYNC_KEY)
         sync_time = DesignateBindCharm.get_sync_time()
