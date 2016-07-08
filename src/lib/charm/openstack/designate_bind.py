@@ -397,7 +397,9 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
 
         request_time = None
         if cluster_relation:
-            request_time = cluster_relation.retrieve_local(CLUSTER_SYNC_KEY)
+            request_times = list(set(
+                cluster_relation.retrieve_local(CLUSTER_SYNC_KEY)))
+            request_time = request_times[0]
         sync_time = DesignateBindCharm.get_sync_time()
         if request_time and request_time > sync_time:
             hookenv.log(('Request for sync sent but remote sync time is too'

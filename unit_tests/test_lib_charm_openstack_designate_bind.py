@@ -388,13 +388,13 @@ class TestDesignateBindCharm(Helper):
             mock.call('start', ['bind9'])]
         a = designate_bind.DesignateBindCharm()
         # Using cluster_relation, no sync needed
-        relation.retrieve_local.return_value = '30'
+        relation.retrieve_local.return_value = ['30']
         self.get_sync_time.return_value = '20'
         a.retrieve_zones(relation)
         self.assertFalse(self.service_control.called)
         # Using cluster_relation, sync needed
         self.service_control.reset_mock()
-        relation.retrieve_local.return_value = '10'
+        relation.retrieve_local.return_value = ['10']
         self.get_sync_time.return_value = '20'
         a.retrieve_zones(relation)
         self.service_control.assert_has_calls(ctrl_calls)
