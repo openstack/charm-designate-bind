@@ -312,13 +312,22 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         subprocess.check_call(cmd, cwd=ZONE_DIR)
 
     def setup_sync_dir(self, sync_time):
+        """Create directory to store zone sync files
+
+        :returns: None
+        """
         sync_dir = '{}/zone-syncs'.format(WWW_DIR, sync_time)
         try:
             os.mkdir(sync_dir, 0o755)
         except FileExistsError:
             os.chmod(sync_dir, 0o755)
+        return sync_dir
 
     def create_sync_src_info_file(self):
+        """Touch a file which indicates where this sync file came from
+
+        :returns: None
+        """
         unit_name = hookenv.local_unit().replace('/', '_')
         touch_file = '{}/juju-zone-src-{}'.format(ZONE_DIR, unit_name)
         open(touch_file, 'w+').close()
