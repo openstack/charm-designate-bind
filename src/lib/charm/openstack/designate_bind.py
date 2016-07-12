@@ -125,6 +125,15 @@ def render_all_configs(interfaces_list):
     DesignateBindCharm.singleton.render_with_interfaces(interfaces_list)
 
 
+def assess_status():
+    """Just call the DesignateBindCharm.singleton.assess_status() command
+    to update status on the unit.
+
+    @returns: None
+    """
+    DesignateBindCharm.singleton.assess_status()
+
+
 class DNSAdapter(adapters.OpenStackRelationAdapter):
 
     def __init__(self, relation):
@@ -194,6 +203,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
     default_service = 'bind9'
     adapters_class = BindAdapters
     release = 'icehouse'
+    required_relations = []
 
     def __init__(self, release=None, **kwargs):
         super(DesignateBindCharm, self).__init__(release='icehouse', **kwargs)

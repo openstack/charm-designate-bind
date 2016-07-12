@@ -108,6 +108,7 @@ class TestDesignateHandlers(unittest.TestCase):
                 ('cluster.connected', ),
                 ('zones.initialised', ),
             ],
+            'assess_status': [('zones.initialised', )],
         }
         when_not_patterns = {
             'install_packages': [('installed', )],
@@ -128,6 +129,7 @@ class TestDesignateHandlers(unittest.TestCase):
                      (_when_not_args, when_not_patterns)]:
             for f, args in t.items():
                 # check that function is in patterns
+                print(f)
                 self.assertTrue(f in p.keys())
                 # check that the lists are equal
                 l = [a['args'] for a in args]

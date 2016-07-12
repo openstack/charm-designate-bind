@@ -92,3 +92,8 @@ def process_sync_requests(hacluster):
     '''If this unit is the leader process and new sync requests'''
     if hookenv.is_leader():
         designate_bind.process_requests(hacluster)
+
+
+@reactive.when('zones.initialised')
+def assess_status():
+    designate_bind.assess_status()
