@@ -1,3 +1,18 @@
+# Copyright 2016 Canonical Ltd
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 import charms.reactive as reactive
 import charmhelpers.core.hookenv as hookenv
 import charm.openstack.designate_bind as designate_bind
@@ -92,3 +107,8 @@ def process_sync_requests(hacluster):
     '''If this unit is the leader process and new sync requests'''
     if hookenv.is_leader():
         designate_bind.process_requests(hacluster)
+
+
+@reactive.when('zones.initialised')
+def assess_status():
+    designate_bind.assess_status()
