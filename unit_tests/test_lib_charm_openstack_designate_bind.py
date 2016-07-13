@@ -15,9 +15,9 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import mock
 import unittest
 
-import mock
 
 import charm.openstack.designate_bind as designate_bind
 
