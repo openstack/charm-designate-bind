@@ -40,7 +40,7 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
     def __init__(self, series, openstack=None, source=None, stable=False):
         """Deploy the entire test environment."""
         super(DesignateBindDeployment, self).__init__(series, openstack,
-                                                       source, stable)
+                                                      source, stable)
         self._add_services()
         self._add_relations()
         self._configure_services()
@@ -63,10 +63,9 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         other_services = [{'name': 'mysql'},
                           {'name': 'rabbitmq-server'},
                           {'name': 'keystone'},
-                          {'name': 'designate',
-                           'location': 'cs:~gnuoy/trusty/designate-0'}]
+                          {'name': 'designate'}]
         super(DesignateBindDeployment, self)._add_services(this_service,
-                                                            other_services)
+                                                           other_services)
 
     def _add_relations(self):
         """Add all of the relations for the services."""

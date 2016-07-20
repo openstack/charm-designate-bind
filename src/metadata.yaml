@@ -10,9 +10,9 @@ description: |
  Designate, providing DNSaaS in an OpenStack cloud.
 tags:
   - openstack
+  - dns
 series:
   - trusty
-  - wily
   - xenial
 subordinate: false
 provides:
