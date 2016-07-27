@@ -84,14 +84,15 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
             keystone_config = {'admin-password': 'openstack',
                                'admin-token': 'ubuntutesting',
                                'openstack-origin': 'cloud:trusty-mitaka'}
-            designate_config = {'openstack-origin': 'cloud:trusty-mitaka'}
-            configs = {
-                'keystone': keystone_config,
-                'designate': designate_config}
+            designate_config = {'openstack-origin': 'cloud:trusty-mitaka',
+                                'nameservers': 'ns1.mojotest.com.'}
         else:
             keystone_config = {'admin-password': 'openstack',
                                'admin-token': 'ubuntutesting'}
-            configs = {'keystone': keystone_config}
+            designate_config = {'nameservers': 'ns1.mojotest.com.'}
+        configs = {
+            'keystone': keystone_config,
+            'designate': designate_config}
         super(DesignateBindDeployment, self)._configure_services(configs)
 
     def _get_token(self):

@@ -26,4 +26,5 @@ options {
         allow-new-zones yes;
         request-ixfr no;
         recursion no;
+        allow-notify { {{ dns_backend.control_ips }}; };
 };
