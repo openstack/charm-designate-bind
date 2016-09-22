@@ -47,9 +47,10 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         self._deploy()
 
         u.log.info('Waiting on extended status checks...')
-        exclude_services = ['mysql', 'mongodb']
+        exclude_services = ['mongodb']
         self._auto_wait_for_status(exclude_services=exclude_services)
 
+        self.d.sentry.wait()
         self._initialize_tests()
 
     def _add_services(self):
@@ -60,20 +61,34 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
            compatible with the local charm (e.g. stable or next).
            """
         this_service = {'name': 'designate-bind'}
-        other_services = [{'name': 'mysql'},
-                          {'name': 'rabbitmq-server'},
-                          {'name': 'keystone'},
-                          {'name': 'designate'}]
+        other_services = [
+            {'name': 'percona-cluster', 'constraints': {'mem': '3072M'}},
+            {'name': 'rabbitmq-server'},
+            {'name': 'keystone'},
+            {'name': 'designate'}
+        ]
+
+        use_source = [
+            'percona-cluster',
+            'rabbitmq-server',
+        ]
+
+        no_origin = [
+            'designate-bind',
+        ]
+
         super(DesignateBindDeployment, self)._add_services(this_service,
-                                                           other_services)
+                                                           other_services,
+                                                           use_source,
+                                                           no_origin)
 
     def _add_relations(self):
         """Add all of the relations for the services."""
         relations = {
-            'designate:shared-db': 'mysql:shared-db',
+            'designate:shared-db': 'percona-cluster:shared-db',
             'designate:amqp': 'rabbitmq-server:amqp',
             'designate:identity-service': 'keystone:identity-service',
-            'keystone:shared-db': 'mysql:shared-db',
+            'keystone:shared-db': 'percona-cluster:shared-db',
             'designate:dns-backend': 'designate-bind:dns-backend',
         }
         super(DesignateBindDeployment, self)._add_relations(relations)
@@ -90,9 +105,20 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
             keystone_config = {'admin-password': 'openstack',
                                'admin-token': 'ubuntutesting'}
             designate_config = {'nameservers': 'ns1.mojotest.com.'}
+
+        pxc_config = {
+            'dataset-size': '25%',
+            'max-connections': 1000,
+            'root-password': 'ChangeMe123',
+            'sst-password': 'ChangeMe123',
+        }
+
         configs = {
             'keystone': keystone_config,
-            'designate': designate_config}
+            'designate': designate_config,
+            'percona-cluster': pxc_config,
+        }
+
         super(DesignateBindDeployment, self)._configure_services(configs)
 
     def _get_token(self):
@@ -103,7 +129,7 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         # Access the sentries for inspecting service units
         self.designate_sentry = self.d.sentry['designate'][0]
         self.designate_bind_sentry = self.d.sentry['designate-bind'][0]
-        self.mysql_sentry = self.d.sentry['mysql'][0]
+        self.pxc_sentry = self.d.sentry['percona-cluster'][0]
         self.keystone_sentry = self.d.sentry['keystone'][0]
         self.rabbitmq_sentry = self.d.sentry['rabbitmq-server'][0]
         u.log.debug('openstack release val: {}'.format(
