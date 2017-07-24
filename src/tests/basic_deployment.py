@@ -14,7 +14,6 @@
 
 
 import amulet
-import json
 import subprocess
 import time
 
@@ -154,10 +153,10 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         # Authenticate admin with designate endpoint
         designate_ep = self.keystone.service_catalog.url_for(
             service_type='dns',
-            endpoint_type='publicURL')
+            interface='publicURL')
         keystone_ep = self.keystone.service_catalog.url_for(
             service_type='identity',
-            endpoint_type='publicURL')
+            interface='publicURL')
         self.designate = designate_client.Client(
             version='1',
             auth_url=keystone_ep,
@@ -176,32 +175,6 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
             waited = waited + interval
         if waited > max_wait:
             raise Exception('cmd failed {}'.format(check_command))
-
-    def _run_action(self, unit_id, action, *args):
-        command = ["juju", "action", "do", "--format=json", unit_id, action]
-        command.extend(args)
-        print("Running command: %s\n" % " ".join(command))
-        output = subprocess.check_output(command)
-        output_json = output.decode(encoding="UTF-8")
-        data = json.loads(output_json)
-        action_id = data[u'Action queued with id']
-        return action_id
-
-    def _wait_on_action(self, action_id):
-        command = ["juju", "action", "fetch", "--format=json", action_id]
-        while True:
-            try:
-                output = subprocess.check_output(command)
-            except Exception as e:
-                print(e)
-                return False
-            output_json = output.decode(encoding="UTF-8")
-            data = json.loads(output_json)
-            if data[u"status"] == "completed":
-                return True
-            elif data[u"status"] == "failed":
-                return False
-            time.sleep(2)
 
     def test_100_services(self):
         """Verify the expected services are running on the corresponding
