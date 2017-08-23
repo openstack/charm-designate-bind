@@ -15,7 +15,6 @@ series:
   - trusty
   - xenial
   - zesty
-  - yakkety
 subordinate: false
 provides:
   dns-backend:
