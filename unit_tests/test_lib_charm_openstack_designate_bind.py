@@ -141,8 +141,9 @@ class TestDNSAdapter(Helper):
 
     def test_control_listen_ip(self):
         relation = mock.MagicMock()
+        self.patch(designate_bind.ch_ip, 'get_relation_ip')
         self.patch(designate_bind.hookenv, 'unit_private_ip')
-        self.unit_private_ip.return_value = 'ip1'
+        self.get_relation_ip.return_value = 'ip1'
         a = designate_bind.DNSAdapter(relation)
         self.assertEqual(a.control_listen_ip, 'ip1')
 

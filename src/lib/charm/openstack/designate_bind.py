@@ -28,6 +28,8 @@ import charmhelpers.core.decorators as ch_decorators
 import charmhelpers.core.hookenv as hookenv
 import charmhelpers.core.host as host
 
+from charmhelpers.contrib.network import ip as ch_ip
+
 
 LEADERDB_SECRET_KEY = 'rndc_key'
 LEADERDB_SYNC_SRC_KEY = 'sync_src'
@@ -160,7 +162,7 @@ class DNSAdapter(adapters.OpenStackRelationAdapter):
 
         :returns: str: IP local rndc listens on
         """
-        return hookenv.unit_private_ip()
+        return ch_ip.get_relation_ip('dns-backend')
 
     @property
     def control_ips(self):
