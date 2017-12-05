@@ -15,10 +15,10 @@
 # limitations under the License.
 
 
-"""Amulet tests on a basic designate-bind deployment on ocata."""
+"""Amulet tests on a basic designate-bind deployment on queens."""
 
 from basic_deployment import DesignateBindDeployment
 
 if __name__ == '__main__':
-    deployment = DesignateBindDeployment(series='zesty')
+    deployment = DesignateBindDeployment(series='bionic')
     deployment.run_tests()

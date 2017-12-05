@@ -14,8 +14,8 @@ tags:
 series:
   - trusty
   - xenial
+  - bionic
   - artful
-  - zesty
 subordinate: false
 provides:
   dns-backend:
