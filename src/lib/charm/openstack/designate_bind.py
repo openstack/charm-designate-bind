@@ -443,15 +443,20 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
                          'available'),
                         level=hookenv.WARNING)
         else:
-            self.service_control('stop', ['bind9'])
             url = DesignateBindCharm.get_sync_src()
-            self.wget_file(url, ZONE_DIR)
-            tar_file = url.split('/')[-1]
-            subprocess.check_call(['tar', 'xf', tar_file], cwd=ZONE_DIR)
-            os.remove('{}/{}'.format(ZONE_DIR, tar_file))
-            self.service_control('start', ['bind9'])
-            reactive.remove_state('sync.request.sent')
-            reactive.set_state('zones.initialised')
+            if url:
+                self.service_control('stop', ['bind9'])
+                self.wget_file(url, ZONE_DIR)
+                tar_file = url.split('/')[-1]
+                subprocess.check_call(['tar', 'xf', tar_file], cwd=ZONE_DIR)
+                os.remove('{}/{}'.format(ZONE_DIR, tar_file))
+                self.service_control('start', ['bind9'])
+                reactive.remove_state('sync.request.sent')
+                reactive.set_state('zones.initialised')
+            else:
+                hookenv.log(('Leader has not set valid url for zone download '
+                             ' defering until leader provides url'),
+                            level=hookenv.WARNING)
 
     def set_apparmor(self):
         """Disbale apparmor for named

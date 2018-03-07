@@ -405,6 +405,19 @@ class TestDesignateBindCharm(Helper):
             'http://ip1/tarfile.tar',
             '/var/cache/bind')
 
+    def test_retrieve_zones_cluster_relation_nourl(self):
+        relation = mock.MagicMock()
+        self.patch(designate_bind.DesignateBindCharm, 'get_sync_time')
+        self.patch(designate_bind.DesignateBindCharm, 'get_sync_src')
+        self.patch_object(designate_bind.DesignateBindCharm, 'wget_file')
+        self.patch(designate_bind.hookenv, 'log')
+        self.get_sync_src.return_value = None
+        relation.retrieve_local.return_value = ['10']
+        self.get_sync_time.return_value = '20'
+        a = designate_bind.DesignateBindCharm()
+        a.retrieve_zones(relation)
+        self.assertFalse(self.wget_file.called)
+
     def test_retrieve_zones_no_cluster_relation(self):
         self.patch(designate_bind.DesignateBindCharm, 'get_sync_time')
         self.patch(designate_bind.DesignateBindCharm, 'get_sync_src')
