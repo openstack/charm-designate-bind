@@ -147,11 +147,10 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
             'designate-zone-manager',
         ]
 
-        # Authenticate admin with keystone endpoint
-        self.keystone = u.authenticate_keystone_admin(self.keystone_sentry,
-                                                      user='admin',
-                                                      password='openstack',
-                                                      tenant='admin')
+        # Authenticate admin with keystone
+        self.keystone_session, self.keystone = u.get_default_keystone_session(
+            self.keystone_sentry,
+            openstack_release=self._get_openstack_release())
 
         # Authenticate admin with designate endpoint
         designate_ep = self.keystone.service_catalog.url_for(
@@ -160,13 +159,22 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         keystone_ep = self.keystone.service_catalog.url_for(
             service_type='identity',
             interface='publicURL')
-        self.designate = designate_client.Client(
-            version='1',
-            auth_url=keystone_ep,
-            username="admin",
-            password="openstack",
-            tenant_name="admin",
-            endpoint=designate_ep)
+        if self._get_openstack_release() >= self.xenial_queens:
+            self.designate = designate_client.Client(
+                version='2',
+                session=self.keystone_session)
+            self.zones_list = self.designate.zones.list
+            self.zones_delete = self.designate.zones.delete
+        else:
+            self.designate = designate_client.Client(
+                version='1',
+                auth_url=keystone_ep,
+                username="admin",
+                password="openstack",
+                tenant_name="admin",
+                endpoint=designate_ep)
+            self.zones_list = self.designate.domains.list
+            self.zones_delete = self.designate.domains.delete
 
     def check_and_wait(self, check_command, interval=2, max_wait=200,
                        desc=None):
@@ -228,9 +236,15 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
 
     def get_domain_id(self, domain_name):
         domain_id = None
-        for dom in self.designate.domains.list():
-            if dom.name == domain_name:
-                domain_id = dom.id
+        for dom in self.zones_list():
+            if isinstance(dom, dict):
+                if dom['name'] == domain_name:
+                    domain_id = dom['name']
+                    break
+            else:
+                if dom.name == domain_name:
+                    domain_id = dom.id
+                    break
         return domain_id
 
     def get_test_domain_id(self):
@@ -252,7 +266,7 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         old_dom_id = self.get_test_domain_id()
         if old_dom_id:
             u.log.debug('Deleting old domain')
-            self.designate.domains.delete(old_dom_id)
+            self.zones_delete(old_dom_id)
         self.check_and_wait(
             self.check_test_domain_gone,
             desc='Waiting for domain to disappear')
@@ -260,7 +274,11 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
         domain = domains.Domain(
             name=self.TEST_DOMAIN,
             email="fred@amuletexample.com")
-        new_domain = self.designate.domains.create(domain)
+        if self._get_openstack_release() >= self.xenial_queens:
+            new_domain = self.designate.zones.create(
+                name=domain.name, email=domain.email)
+        else:
+            new_domain = self.designate.domains.create(domain)
         assert(new_domain is not None)
 
         u.log.debug('Creating new test record')
@@ -269,10 +287,16 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
             type="A",
             data=self.TEST_RECORD[self.TEST_WWW_RECORD])
 
-        self.designate.records.create(new_domain.id, _record)
+        if self._get_openstack_release() >= self.xenial_queens:
+            _domain_id = new_domain['id']
+            self.designate.recordsets.create(
+                _domain_id, _record.name, _record.type, [_record.data])
+        else:
+            _domain_id = new_domain.id
+            self.designate.records.create(_domain_id, _record)
         self.check_and_wait(
             self.check_slave_resolve_test_record,
             desc='Waiting for dns record to propagate')
         u.log.debug('Tidy up delete test record')
-        self.designate.domains.delete(new_domain.id)
+        self.zones_delete(_domain_id)
         u.log.debug('OK')
