@@ -26,5 +26,7 @@ options {
         allow-new-zones yes;
         request-ixfr no;
         recursion no;
+        statistics-file "/var/cache/bind/named.stats";
+        zone-statistics yes;
         allow-notify { {{ dns_backend.control_ips }}; };
 };
