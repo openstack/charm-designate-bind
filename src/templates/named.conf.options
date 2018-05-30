@@ -1,3 +1,9 @@
+{% if options.allowed_nets -%}
+acl allow_query {
+        {{ options.allowed_nets }};
+};
+
+{% endif -%}
 options {
         directory "/var/cache/bind";
 
@@ -29,4 +35,7 @@ options {
         statistics-file "/var/cache/bind/named.stats";
         zone-statistics yes;
         allow-notify { {{ dns_backend.control_ips }}; };
+        {% if options.allowed_nets -%}
+        allow-query { allow_query; };
+        {% endif -%}
 };
