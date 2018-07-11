@@ -15,7 +15,7 @@ series:
   - trusty
   - xenial
   - bionic
-  - artful
+  - cosmic
 subordinate: false
 provides:
   dns-backend:
