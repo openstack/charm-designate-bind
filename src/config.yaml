@@ -1,6 +1,6 @@
 options:
   allowed_nets:
-    default: "p2p"
+    default: ""
     type: string
     description: |
       String containing a list of allowed networks, separated by semicolons: e.g., "10.172.0.0/16;10.10.0.0/18"
