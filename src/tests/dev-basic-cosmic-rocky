@@ -15,13 +15,10 @@
 # limitations under the License.
 
 
-"""Amulet tests on a basic designate-bind deployment on xenial-queens."""
+"""Amulet tests on a basic designate-bind deployment on rocky."""
 
 from basic_deployment import DesignateBindDeployment
 
 if __name__ == '__main__':
-    deployment = DesignateBindDeployment(
-        series='xenial',
-        openstack='cloud:xenial-queens',
-        source='cloud:xenial-updates/queens')
+    deployment = DesignateBindDeployment(series='cosmic')
     deployment.run_tests()
