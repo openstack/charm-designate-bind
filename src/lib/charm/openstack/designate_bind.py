@@ -222,6 +222,8 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
     release = 'icehouse'
     required_relations = []
 
+    group = 'bind'
+
     def __init__(self, release=None, **kwargs):
         super(DesignateBindCharm, self).__init__(release='icehouse', **kwargs)
 
