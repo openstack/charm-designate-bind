@@ -3,10 +3,38 @@ options:
     default: ""
     type: string
     description: |
-      String containing a list of allowed networks, separated by semicolons: e.g., "10.172.0.0/16;10.10.0.0/18"
+      String containing a list of allowed networks of hosts for DNS
+      queries, separated by semicolons: e.g.,
+      "10.0.0.0/8;172.16.0.0/12;192.168.0.0/16". The option is
+      equivalent to "allow-query" in BIND9. If not specified, the
+      default is to allow queries from all hosts.
+  allowed_recursion_nets:
+    default: ""
+    type: string
+    description: |
+      String containing a list of allowed networks of hosts for
+      recursive queries through the designate-bind servers, spearated by
+      semicolons: e.g., "10.0.0.0/8;172.16.0.0/12;192.168.0.0/16". The
+      option is equivalent to "allow-recursion" in BIND9. If
+      allowed_recursion_nets is not set then allowed_nets is used if
+      set, otherwise any will be set to allow recursive queries from all
+      hosts.
   forwarders:
     default: ""
     type: string
     description: |
-      String containing a list of forwarders, separated by semicolons: e.g., "8.8.8.8;10.1.1.1"
-
+      String containing a list of forwarders, separated by semicolons:
+      e.g., "8.8.8.8;8.8.4.4". As non-empty forwarders option implies
+      recursion, recursive queries will be enabled regardless of the
+      value set in the recursion option. When using this option, ACLs
+      should be used with allowed_nets and/or allowed_recursion_nets to
+      prevent it from being a open resolver.
+  recursion:
+    default: false
+    type: boolean
+    description: |
+      Whether or not to enable recursive queries with BIND9 itself to be
+      installed by the charm. The option is equivalent to "recursion" in
+      BIND9. When using this option, ACLs should be used with
+      allowed_nets and/or allowed_recursion_nets to prevent it from
+      being a open resolver.

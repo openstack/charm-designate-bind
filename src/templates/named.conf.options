@@ -2,8 +2,14 @@
 acl allow_query {
         {{ options.allowed_nets }};
 };
+{%- endif %}
 
-{% endif -%}
+{% if options.allowed_recursion_nets -%}
+acl allow_recursion {
+        {{ options.allowed_recursion_nets }};
+};
+{%- endif %}
+
 options {
         directory "/var/cache/bind";
 
@@ -20,7 +26,9 @@ options {
         forwarders {
             {{ options.forwarders }};
         };
-        {% endif -%}
+        forward only;
+        {%- endif %}
+
         //========================================================================
         // If BIND logs error messages about the root key being expired,
         // you will need to update your keys.  See https://www.isc.org/bind-keys
@@ -31,11 +39,25 @@ options {
         listen-on-v6 { any; };
         allow-new-zones yes;
         request-ixfr no;
+        {% if options.forwarders or options.recursion -%}
+        recursion yes;
+
+        {% if options.allowed_recursion_nets -%}
+        allow-recursion { allow_recursion; };
+        {% elif options.allowed_nets -%}
+        allow-recursion { allow_query; };
+        {% else -%}
+        allow-recursion { any; };
+        {% endif -%}
+
+        {% else -%}
         recursion no;
+        {% endif -%}
+
         statistics-file "/var/cache/bind/named.stats";
         zone-statistics yes;
         allow-notify { {{ dns_backend.control_ips }}; };
         {% if options.allowed_nets -%}
         allow-query { allow_query; };
-        {% endif -%}
+        {%- endif %}
 };

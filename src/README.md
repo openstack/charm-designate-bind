@@ -10,6 +10,29 @@ designate-bind relies on designate charm.
     juju deploy designate
     juju add-relation designate designate-bind
 
+## Recursion and forwarders
+
+By default, this charm only resolves names in zones managed by
+Designate. You can optionally enable recursion or forwarders to resolve
+names outside of Designate, such as google.com or archive.ubuntu.com.
+
+Recursion and forwarders should be enabled with extra care. You should
+also enable ACLs with allowed_nets and/or allowed_recursion_nets.
+Otherwise, the DNS server may be open for anyone which could be used for
+some attacks as an open resolver.
+
+For example, when you want to allow DNS clients in local networks only,
+and use 8.8.8.8 and 8.8.4.4 as upstream DNS servers, You can set charm
+options like:
+
+    juju config designate-bind allowed_nets='10.0.0.0/8;172.16.0.0/12;192.168.0.0/16'
+    juju config designate-bind forwarders='8.8.8.8;8.8.4.4'
+
+Or if you want to use BIND9 set up by the charm as a full-service resolver, set the following options for example:
+
+    juju config designate-bind allowed_nets='10.0.0.0/8;172.16.0.0/12;192.168.0.0/16'
+    juju config designate-bind recursion=true
+
 # Network Space support
 
 This charm supports the use of Juju Network Spaces, allowing the charm
