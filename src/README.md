@@ -10,6 +10,37 @@ designate-bind relies on designate charm.
     juju deploy designate
     juju add-relation designate designate-bind
 
+# Network Space support
+
+This charm supports the use of Juju Network Spaces, allowing the charm
+to be bound to network space configurations managed directly by Juju.
+This is only supported with Juju 2.0 and above.
+
+A network space to be used for communication with Designate can be
+specified by "dns-backend" binding.
+
+Extra binding can be specified with "dns-frontend" binding for an
+additional network space to bind DNS server for clients outside of the
+Juju model.
+
+To use this feature, use the --bind option when deploying the charm:
+
+    juju deploy designate-bind --bind "default-space dns-frontend=public-space dns-backend=internal-space"
+
+alternatively these can also be provided as part of a juju native
+bundle configuration:
+
+    designate-bind:
+      charm: cs:designate-bind
+      num_units: 1
+      bindings:
+        '': default-space
+        dns-frontend: public-space
+        dns-backend: internal-space
+
+NOTE: Spaces must be configured in the underlying provider prior to
+attempting to use them.
+
 # Bugs
 
 Please report bugs on [Launchpad](https://bugs.launchpad.net/charm-designate-bind/+filebug).

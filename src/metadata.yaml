@@ -17,6 +17,8 @@ series:
   - bionic
   - cosmic
 subordinate: false
+extra-bindings:
+  dns-frontend:
 provides:
   dns-backend:
     interface: bind-rndc
