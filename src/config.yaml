@@ -38,3 +38,11 @@ options:
       BIND9. When using this option, ACLs should be used with
       allowed_nets and/or allowed_recursion_nets to prevent it from
       being a open resolver.
+  disable-dnssec-validation:
+    default: false
+    type: boolean
+    description: |
+      Whether or not to disable DNSSEC validation. This may be helpful
+      in a situation that upstream DNS servers do not support DNSSEC,
+      and BIND9 reports "Unable to fetch DNSKEY". For production
+      deployments, it's encouraged to keep DNSSEC enabled.
