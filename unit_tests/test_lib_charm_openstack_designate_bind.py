@@ -367,8 +367,8 @@ class TestDesignateBindCharm(Helper):
         a = designate_bind.DesignateBindCharm()
         a.wget_file('http://ip1/tarfile.tar', '/tmp')
         self.check_call.assert_called_once_with(
-            ['wget', 'http://ip1/tarfile.tar', '--retry-connrefused', '-t',
-             '10'],
+            ['wget', 'http://ip1/tarfile.tar', '--no-proxy',
+             '--retry-connrefused', '-t', '10'],
             cwd='/tmp'
         )
 

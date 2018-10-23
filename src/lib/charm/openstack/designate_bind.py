@@ -418,7 +418,9 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         :returns: None
         """
         print("{} {}".format(url, target_dir))
-        cmd = ['wget', url, '--retry-connrefused', '-t', '10']
+        # set arg no-proxy as this should be a direct connection on
+        # dns-backend space lp#1796969
+        cmd = ['wget', url, '--no-proxy', '--retry-connrefused', '-t', '10']
         subprocess.check_call(cmd, cwd=target_dir)
 
     def retrieve_zones(self, cluster_relation=None):
