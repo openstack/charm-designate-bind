@@ -5,3 +5,4 @@ layers
 interfaces
 __pycache__
 .testrepository
+.stestr

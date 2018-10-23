@@ -172,7 +172,7 @@ class TestBindAdapters(Helper):
 
     def test_bind_adapters(self):
         dns_backend_relation = mock.MagicMock()
-        dns_backend_relation.relation_name = 'dns_backend'
+        dns_backend_relation.endpoint_name = 'dns_backend'
         b = designate_bind.BindAdapters([dns_backend_relation])
         # ensure that the relevant things got put on.
         self.assertTrue(
