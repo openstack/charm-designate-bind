@@ -209,8 +209,6 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
 
     services = ['bind9']
 
-    required_relations = ['dns-backend']
-
     restart_map = {
         '/etc/bind/named.conf.options': services,
         '/etc/bind/named.conf': services,
