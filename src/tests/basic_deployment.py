@@ -36,7 +36,7 @@ class DesignateBindDeployment(amulet_deployment.OpenStackAmuletDeployment):
     TEST_WWW_RECORD = "www.{}".format(TEST_DOMAIN)
     TEST_RECORD = {TEST_WWW_RECORD: '10.0.0.23'}
 
-    def __init__(self, series, openstack=None, source=None, stable=False):
+    def __init__(self, series, openstack=None, source=None, stable=True):
         """Deploy the entire test environment."""
         super(DesignateBindDeployment, self).__init__(series, openstack,
                                                       source, stable)
