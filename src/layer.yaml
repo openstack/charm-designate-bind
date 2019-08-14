@@ -1,2 +1,6 @@
 includes: ['layer:openstack', 'interface:bind-rndc', 'interface:openstack-ha']
 repo: https://github.com/openstack/charm-designate-bind.git
+options:
+  basic:
+    include_system_packages: True
+    packages: ['python3-apt']
