@@ -15,8 +15,8 @@ series:
   - trusty
   - xenial
   - bionic
-  - cosmic
   - disco
+  - eoan
 subordinate: false
 extra-bindings:
   dns-frontend:
