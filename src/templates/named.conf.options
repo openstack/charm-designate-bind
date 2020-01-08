@@ -65,3 +65,14 @@ options {
         allow-query { allow_query; };
         {%- endif %}
 };
+{%- if options.debug %}
+logging {
+        channel charm_log {
+                syslog daemon;
+                severity debug;
+        };
+        category default {
+                charm_log;
+        };
+};
+{%- endif %}
