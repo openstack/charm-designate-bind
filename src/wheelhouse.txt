@@ -1,3 +1,3 @@
-
-jinja2
+# pin Jinja2 to the last versions supporting python 3.4 for trusty
+Jinja2<=2.10.1
 psutil
