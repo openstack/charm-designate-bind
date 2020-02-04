@@ -1,0 +1,61 @@
+series: xenial
+
+machines:
+  '0':
+    constraints: mem=3072M
+  '1':
+  '2':
+  '3':
+  '4':
+  '5':
+
+applications:
+  percona-cluster:
+    charm: cs:~openstack-charmers-next/percona-cluster
+    num_units: 1
+    to:
+    - '0'
+  keystone:
+    charm: cs:~openstack-charmers-next/keystone
+    num_units: 1
+    options:
+      openstack-origin: cloud:xenial-pike
+    to:
+    - '1'
+  rabbitmq-server:
+    charm: cs:~openstack-charmers-next/rabbitmq-server
+    num_units: 1
+    to:
+    - '2'
+  designate:
+    charm: cs:~openstack-charmers-next/designate
+    num_units: 1
+    options:
+      nameservers: 'ns1.mojotest.com.'
+      openstack-origin: cloud:xenial-pike
+    to:
+    - '3'
+  memcached:
+    charm: cs:~memcached-team/memcached
+    num_units: 1
+    to:
+    - '4'
+  designate-bind:
+    charm: ../../../designate-bind
+    num_units: 1
+    to:
+    - '5'
+
+relations:
+- - 'designate:shared-db'
+  - 'percona-cluster:shared-db'
+- - 'designate:amqp'
+  - 'rabbitmq-server:amqp'
+- - 'designate:identity-service'
+  - 'keystone:identity-service'
+- - 'keystone:shared-db'
+  - 'percona-cluster:shared-db'
+- - 'designate:dns-backend'
+  - 'designate-bind:dns-backend'
+- - 'designate:coordinator-memcached'
+  - 'memcached:cache'
