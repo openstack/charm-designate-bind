@@ -16,6 +16,7 @@ series:
   - xenial
   - bionic
   - eoan
+  - focal
 subordinate: false
 extra-bindings:
   dns-frontend:
