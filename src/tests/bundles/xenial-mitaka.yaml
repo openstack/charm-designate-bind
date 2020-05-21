@@ -11,22 +11,22 @@ machines:
 
 applications:
   percona-cluster:
-    charm: cs:~openstack-charmers-next/percona-cluster
+    charm: cs:~openstack-charmers/percona-cluster
     num_units: 1
     to:
     - '0'
   keystone:
-    charm: cs:~openstack-charmers-next/keystone
+    charm: cs:~openstack-charmers/keystone
     num_units: 1
     to:
     - '1'
   rabbitmq-server:
-    charm: cs:~openstack-charmers-next/rabbitmq-server
+    charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     to:
     - '2'
   designate:
-    charm: cs:~openstack-charmers-next/designate
+    charm: cs:~openstack-charmers/designate
     num_units: 1
     options:
       nameservers: 'ns1.mojotest.com.'
