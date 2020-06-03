@@ -287,13 +287,14 @@ class TestDesignateBindCharm(Helper):
         _files = {
             '/var/cache/bind/juju*': ['jujufile1'],
             '/var/cache/bind/slave*': ['slavefile1'],
-            '/var/cache/bind/*nzf': ['nsffile']}
+            '/var/cache/bind/*nzf': ['nsffile'],
+            '/var/cache/bind/*nzd': ['nsdfile']}
         self.glob.side_effect = lambda x: _files[x]
         a = designate_bind.DesignateBindCharm()
         a.create_zone_tarball('/tmp/tarball.tar')
         self.check_call.assert_called_once_with([
             'tar', 'zcvf', '/tmp/tarball.tar', 'jujufile1', 'slavefile1',
-            'nsffile'], cwd='/var/cache/bind')
+            'nsffile', 'nsdfile'], cwd='/var/cache/bind')
 
     def test_setup_sync_dir(self):
         self.patch(designate_bind.os, 'mkdir')

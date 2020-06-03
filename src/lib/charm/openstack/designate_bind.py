@@ -331,7 +331,7 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         :returns: None
         """
         zone_files = []
-        for re in ['juju*', 'slave*', '*nzf']:
+        for re in ['juju*', 'slave*', '*nzf', '*nzd']:
             for _file in glob.glob('{}/{}'.format(ZONE_DIR, re)):
                 zone_files.append(os.path.basename(_file))
         cmd = ['tar', 'zcvf', tarfile]
