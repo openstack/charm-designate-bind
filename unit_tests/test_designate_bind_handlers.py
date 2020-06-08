@@ -14,7 +14,7 @@
 
 import unittest
 
-import mock
+from unittest import mock
 
 import reactive.designate_bind_handlers as handlers
 
