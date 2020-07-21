@@ -134,6 +134,21 @@ class TestOpenStackDesignateBind(Helper):
         self.render_with_interfaces.assert_called_once_with('interface_list')
 
 
+class TestEgressSubnets(Helper):
+
+    def test_egress_subnets(self):
+        dns_backend = mock.MagicMock()
+        dns_backend.relation.egress_subnets.return_value = [
+            "10.5.2.1/32",
+            "10.6.20.1/32",
+            "10.7.20.21/32",
+        ]
+        self.assertEqual(
+            designate_bind.dns_egress_subnets(dns_backend),
+            "10.5.2.1/32;10.6.20.1/32;10.7.20.21/32",
+        )
+
+
 class TestDNSAdapter(Helper):
 
     def test_control_listen_ip(self):

@@ -151,6 +151,19 @@ def assess_status():
     DesignateBindCharm.singleton.assess_status()
 
 
+@adapters.adapter_property("dns-backend")
+def dns_egress_subnets(dns_backend):
+    """Generate list of CIDR's for remote units
+
+    Generate a BIND formatted string of semi-colon separated
+    CIDR's for all remote units on the dns-backend relation.
+
+    :returns: BIND formatted string of allowed CIDR's for all
+              remote units.
+    """
+    return ';'.join(dns_backend.relation.egress_subnets())
+
+
 class DNSAdapter(adapters.OpenStackRelationAdapter):
 
     def __init__(self, relation):
