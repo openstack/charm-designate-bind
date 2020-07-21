@@ -343,7 +343,8 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
 
         :returns: None
         """
-        sync_dir = '{}/zone-syncs'.format(WWW_DIR, sync_time)
+        # NOTE(jamespage): sync_time is not used in the path?
+        sync_dir = '{}/zone-syncs'.format(WWW_DIR)
         try:
             os.mkdir(sync_dir, 0o755)
         except FileExistsError:

@@ -143,8 +143,8 @@ class TestDesignateHandlers(unittest.TestCase):
                 print(f)
                 self.assertTrue(f in p.keys())
                 # check that the lists are equal
-                l = [a['args'] for a in args]
-                self.assertEqual(l, p[f])
+                newlist = [a['args'] for a in args]
+                self.assertEqual(newlist, p[f])
 
     def test_install_packages(self):
         self.patch(handlers.designate_bind, 'install')
