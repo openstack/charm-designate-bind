@@ -15,7 +15,6 @@ series:
 - trusty
 - xenial
 - bionic
-- eoan
 - focal
 - groovy
 subordinate: false
