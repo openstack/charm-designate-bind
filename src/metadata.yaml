@@ -12,11 +12,11 @@ tags:
 - openstack
 - dns
 series:
-- trusty
 - xenial
 - bionic
 - focal
 - groovy
+- hirsute
 subordinate: false
 extra-bindings:
   dns-frontend:
