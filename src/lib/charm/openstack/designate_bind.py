@@ -236,7 +236,27 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
     group = 'bind'
 
     def __init__(self, release=None, **kwargs):
+        self._ensure_override_service_name()
         super(DesignateBindCharm, self).__init__(release='icehouse', **kwargs)
+
+    @classmethod
+    def _ensure_override_service_name(cls):
+        """Override the bind9 service to named for focal+
+
+        This class is instantiated for all versions of Ubuntu, but we also need
+        to check for the host being focal to override the named service to
+        'named'.
+        """
+        release = host.CompareHostReleases(
+            host.lsb_release()['DISTRIB_CODENAME'])
+        if release >= 'focal':
+            cls.services = ['named']
+            cls.restart_map = {
+                '/etc/bind/named.conf.options': cls.services,
+                '/etc/bind/named.conf': cls.services,
+                '/etc/bind/rndc.key': cls.services,
+            }
+            cls.default_service = 'named'
 
     @staticmethod
     def get_rndc_algorithm():
@@ -386,10 +406,10 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         sync_dir = self.setup_sync_dir(sync_time)
         self.create_sync_src_info_file()
         # FIXME Try freezing DNS rather than stopping bind
-        self.service_control('stop', ['bind9'])
+        self.service_control('stop', [self.default_service])
         tar_file = '{}/{}.tar.gz'.format(sync_dir, sync_time)
         self.create_zone_tarball(tar_file)
-        self.service_control('start', ['bind9'])
+        self.service_control('start', [self.default_service])
         self.set_sync_info(sync_time, '{}.tar.gz'.format(sync_time))
 
     def service_control(self, cmd, services):
@@ -461,12 +481,12 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         else:
             url = DesignateBindCharm.get_sync_src()
             if url:
-                self.service_control('stop', ['bind9'])
+                self.service_control('stop', [self.default_service])
                 self.wget_file(url, ZONE_DIR)
                 tar_file = url.split('/')[-1]
                 subprocess.check_call(['tar', 'xf', tar_file], cwd=ZONE_DIR)
                 os.remove('{}/{}'.format(ZONE_DIR, tar_file))
-                self.service_control('start', ['bind9'])
+                self.service_control('start', [self.default_service])
                 reactive.remove_state('sync.request.sent')
                 reactive.set_state('zones.initialised')
             else:
