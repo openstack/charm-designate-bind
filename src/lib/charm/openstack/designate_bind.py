@@ -236,7 +236,27 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
     group = 'bind'
 
     def __init__(self, release=None, **kwargs):
+        self._ensure_override_service_name()
         super(DesignateBindCharm, self).__init__(release='icehouse', **kwargs)
+
+    @classmethod
+    def _ensure_override_service_name(cls):
+        """Override the bind9 service to named for focal+
+
+        This class is instantiated for all versions of Ubuntu, but we also need
+        to check for the host being focal to override the named service to
+        'named'.
+        """
+        release = host.CompareHostReleases(
+            host.lsb_release()['DISTRIB_CODENAME'])
+        if release >= 'focal':
+            cls.services = ['named']
+            cls.restart_map = {
+                '/etc/bind/named.conf.options': cls.services,
+                '/etc/bind/named.conf': cls.services,
+                '/etc/bind/rndc.key': cls.services,
+            }
+            cls.default_service = 'named'
 
     @staticmethod
     def get_rndc_algorithm():

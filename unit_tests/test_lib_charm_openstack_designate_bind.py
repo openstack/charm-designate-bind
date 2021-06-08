@@ -33,6 +33,13 @@ class Helper(test_utils.PatchHelper):
         super().setUp()
         self.patch('charmhelpers.core.hookenv.config', name='ch_config')
         self.ch_config.side_effect = lambda: {'ssl_param': None}
+        self.patch_object(designate_bind, "host", name="ch_core_host")
+        self.ch_core_host.lsb_release.return_value = {
+            "DISTRIB_CODENAME": "bionic"
+        }
+        # simply the CompareHostReleases to just return then string for
+        # comparisons. (won't work for xenial/bionic)
+        self.ch_core_host.CompareHostReleases.side_effect = lambda x: x
         self.patch('charms_openstack.charm.core._singleton', new=None)
 
 
@@ -43,6 +50,33 @@ class TestOpenStackDesignateBind(Helper):
         self.patch_object(charm, 'install')
         designate_bind.install()
         self.install.assert_called_once_with()
+
+    def test_service_is_bind9_pre_focal(self):
+        charm = designate_bind.DesignateBindCharm.singleton
+        self.assertEqual(charm.services, ["bind9"])
+        for v in charm.restart_map.values():
+            self.assertEqual(v, ["bind9"])
+        self.assertEqual(charm.default_service, "bind9")
+
+    def test_service_is_bind9_when_bionic(self):
+        self.ch_core_host.lsb_release.return_value = {
+            "DISTRIB_CODENAME": "bionic"
+        }
+        charm = designate_bind.DesignateBindCharm.singleton
+        self.assertEqual(charm.services, ["bind9"])
+        for v in charm.restart_map.values():
+            self.assertEqual(v, ["bind9"])
+        self.assertEqual(charm.default_service, "bind9")
+
+    def test_service_is_named_focal_plus(self):
+        self.ch_core_host.lsb_release.return_value = {
+            "DISTRIB_CODENAME": "focal"
+        }
+        charm = designate_bind.DesignateBindCharm.singleton
+        self.assertEqual(charm.services, ["named"])
+        for v in charm.restart_map.values():
+            self.assertEqual(v, ["named"])
+        self.assertEqual(charm.default_service, "named")
 
     def test_init_rndckey(self):
         self.patch_object(
