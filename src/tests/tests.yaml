@@ -7,24 +7,30 @@ gate_bundles:
   - xenial-mitaka
   - bionic-queens
   - bionic-stein
-  - bionic-train
   - bionic-ussuri
   - focal-ussuri
-  - focal-victoria
   - focal-wallaby
-  - groovy-victoria
+  - focal-xena
+  - hirsute-wallaby
 
 dev_bundles:
   - trusty-mitaka
   - xenial-ocata
   - xenial-pike
   - xenial-queens
+  - bionic-train
   - bionic-rocky
-  - hirsute-wallaby
+  - focal-victoria
+  - impish-xena
 
 tests:
   - zaza.openstack.charm_tests.designate.tests.DesignateTests
 
+target_deploy_status:
+  nrpe:
+    workload-status: blocked
+    workload-status-message-prefix: "Nagios server not configured or related"
+
 tests_options:
   force_deploy:
-    - hirsute-wallaby
+    - impish-xena

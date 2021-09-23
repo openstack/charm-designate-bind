@@ -1,7 +1,7 @@
 variables:
   openstack-origin: &openstack-origin distro
 
-series: focal
+series: impish
 
 machines:
   '0':
@@ -90,6 +90,7 @@ applications:
 
   nrpe:
     charm: cs:nrpe
+    series: focal
 
 relations:
   - - 'keystone:shared-db'
