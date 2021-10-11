@@ -2,6 +2,6 @@
 Jinja2<=2.10.1
 psutil
 
-git+https://github.com/openstack/charms.openstack.git#egg=charms.openstack
+git+https://github.com/openstack/charms.openstack.git@stable/21.10#egg=charms.openstack
 
-git+https://github.com/juju/charm-helpers.git#egg=charmhelpers
+git+https://github.com/juju/charm-helpers.git@stable/21.10#egg=charmhelpers
