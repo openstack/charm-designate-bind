@@ -23,13 +23,11 @@ applications:
       openstack-origin: cloud:trusty-mitaka
     to:
     - '1'
-    channel: candidate
   rabbitmq-server:
     charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     to:
     - '2'
-    channel: candidate
   designate-bind:
     charm: ../../../designate-bind
     num_units: 1
@@ -48,7 +46,6 @@ applications:
       openstack-origin: cloud:trusty-mitaka
     to:
     - '5'
-    channel: candidate
   neutron-api:
     charm: cs:~openstack-charmers/neutron-api
     num_units: 1
@@ -56,7 +53,6 @@ applications:
       openstack-origin: cloud:trusty-mitaka
     to:
     - '6'
-    channel: candidate
 
 relations:
 - - 'designate:shared-db'

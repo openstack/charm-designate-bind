@@ -16,19 +16,16 @@ applications:
     num_units: 1
     to:
     - '0'
-    channel: candidate
   keystone:
     charm: cs:~openstack-charmers/keystone
     num_units: 1
     to:
     - '1'
-    channel: candidate
   rabbitmq-server:
     charm: cs:~openstack-charmers/rabbitmq-server
     num_units: 1
     to:
     - '2'
-    channel: candidate
   designate-bind:
     charm: ../../../designate-bind
     num_units: 1
@@ -46,7 +43,6 @@ applications:
       nameservers: 'ns1.amuletexample.com. ns2.amuletexample.com.'
     to:
     - '5'
-    channel: candidate
   nrpe:
     charm: cs:nrpe
   neutron-api:
@@ -54,7 +50,6 @@ applications:
     num_units: 1
     to:
     - '6'
-    channel: candidate
 
 relations:
 - - 'designate:shared-db'
