@@ -1,27 +1,29 @@
 charm_name: designate-bind
 
 smoke_bundles:
-  - bionic-train
+  - focal-ussuri
 
 gate_bundles:
-  - xenial-mitaka
   - bionic-queens
   - bionic-stein
   - bionic-ussuri
   - focal-ussuri
+  - focal-victoria
   - focal-wallaby
   - focal-xena
   - hirsute-wallaby
+  - impish-xena
 
 dev_bundles:
   - trusty-mitaka
+  - xenial-mitaka
   - xenial-ocata
   - xenial-pike
   - xenial-queens
-  - bionic-train
   - bionic-rocky
-  - focal-victoria
-  - impish-xena
+  - bionic-train
+  - focal-yoga
+  - jammy-yoga
 
 tests:
   - zaza.openstack.charm_tests.designate.tests.DesignateTests
@@ -33,4 +35,6 @@ target_deploy_status:
 
 tests_options:
   force_deploy:
+    - hirsute-wallaby
     - impish-xena
+    - jammy-yoga
