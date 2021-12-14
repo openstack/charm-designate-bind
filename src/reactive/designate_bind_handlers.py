@@ -112,3 +112,27 @@ def process_sync_requests(hacluster):
 @reactive.when('zones.initialised')
 def assess_status():
     designate_bind.assess_status()
+
+
+@reactive.when('config.changed.service_ips')
+def service_ips_changed():
+    """Reconfigure service IPs on the unit."""
+    designate_bind.reconfigure_service_ips()
+
+
+@reactive.when('ha.connected')
+def hacluster_connected(_):
+    """Check if service IPs are awaiting configuration via hacluster."""
+    if reactive.is_flag_set(designate_bind.AWAITING_HACLUSTER_FLAG):
+        hookenv.log('hacluster connected, configuring Service IPs',
+                    hookenv.INFO)
+        designate_bind.reconfigure_service_ips()
+        reactive.clear_flag(designate_bind.AWAITING_HACLUSTER_FLAG)
+
+
+@reactive.when('ha-relation-departed')
+def hacluster_departed(_):
+    """Set blocked state if hacluster leaves and service_ips are configured."""
+    if hookenv.config('service_ips'):
+        reactive.set_flag(designate_bind.AWAITING_HACLUSTER_FLAG)
+        designate_bind.assess_status()

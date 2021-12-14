@@ -14,6 +14,14 @@
 
 
 from unittest import mock
+import sys
+
+from ipaddress import IPv4Address, IPv6Address
+
+# Modules imported from other interfaces/layers need to be mocked
+sys.modules[
+    'relations.hacluster.interface_hacluster.common'
+] = mock.MagicMock()
 
 import charms_openstack.test_utils as test_utils
 
@@ -139,6 +147,123 @@ class TestOpenStackDesignateBind(Helper):
             'render_with_interfaces')
         designate_bind.render_all_configs('interface_list')
         self.render_with_interfaces.assert_called_once_with('interface_list')
+
+
+class TestServiceIPFunctions(Helper):
+    """Collection of tests for functions doing 'service_ip' configuration."""
+
+    def test_parse_service_ip_config(self):
+        """Test function parsing 'service_ips' config option."""
+        service_ips = "10.0.0.1, 10.0.0.2, 2001:db8::2:1"
+
+        with mock.patch.object(designate_bind.hookenv, 'config') as config:
+            config.return_value = service_ips
+            parsed_ips = designate_bind.parse_service_ip_config()
+
+        expected_output = [
+            IPv4Address("10.0.0.1"),
+            IPv4Address("10.0.0.2"),
+            IPv6Address("2001:db8::2:1")
+        ]
+
+        self.assertEqual(expected_output, parsed_ips)
+
+    def test_remove_service_ips(self):
+        """Test removing already configured Service IPs."""
+        ip_to_remove = IPv4Address("10.0.0.1")
+        ip_to_retain = IPv4Address("10.0.0.2")
+        configured_resources = '["{0}{1}", "{0}{2}"]'.format(
+            designate_bind.SERVICE_IP_PREFIX,
+            ip_to_remove,
+            ip_to_retain
+        )
+        ha_cluster = mock.MagicMock()
+        ha_cluster.get_local.return_value = configured_resources
+
+        with mock.patch.object(designate_bind.reactive, 'endpoint_from_flag',
+                               return_value=ha_cluster):
+            designate_bind.remove_service_ips(exclude=[ip_to_retain])
+
+        ha_cluster.delete_resource.assert_called_once_with("{}{}".format(
+            designate_bind.SERVICE_IP_PREFIX, ip_to_remove
+        ))
+        ha_cluster.remove_colocation.assert_called_once_with(
+            designate_bind.COLOCATION_NAME
+        )
+        ha_cluster.bind_resources.assert_called_once_with()
+
+    def test_remove_service_ips_no_hacluster(self):
+        """Test that warning is logged if there's no hacluster."""
+        with mock.patch.object(designate_bind.reactive, 'endpoint_from_flag',
+                               return_value=None):
+            designate_bind.remove_service_ips()
+
+        expected_message = ('No relation with "ha-cluster" charm. Nothing to '
+                            'clear.')
+        expected_level = designate_bind.hookenv.WARNING
+        designate_bind.hookenv.log.assert_called_with(expected_message,
+                                                      expected_level)
+
+    def test_add_service_ips(self):
+        """Test configuring Service IP via hacluster resources."""
+        ha_cluster_mock = mock.MagicMock()
+        crm_mock = mock.MagicMock()
+        crm_patch = mock.patch.object(designate_bind, 'CRM',
+                                      return_value=crm_mock)
+        crm_patch.start()
+
+        add_ips = [IPv4Address("10.0.0.1"), IPv6Address("2001:db8::2:1")]
+        expected_primitive_calls = []
+        all_ip_resources = []
+        for ip_ in add_ips:
+            resource = "{}{}".format(designate_bind.SERVICE_IP_PREFIX, ip_)
+            ip_type = "IPaddr2" if isinstance(ip_, IPv4Address) else "IPv6addr"
+            expected_primitive_calls.append(mock.call(
+                resource,
+                "ocf:heartbeat:{}".format(ip_type),
+                params="ip={}".format(ip_),
+                op='monitor interval="10s"'
+            ))
+            all_ip_resources.append(resource)
+
+        with mock.patch.object(designate_bind.reactive, 'endpoint_from_flag',
+                               return_value=ha_cluster_mock):
+            designate_bind.add_service_ips(add_ips)
+
+        crm_mock.primitive.assert_has_calls(expected_primitive_calls)
+        crm_mock.colocation.assert_called_once_with(
+            designate_bind.COLOCATION_NAME,
+            -10,
+            *all_ip_resources
+        )
+        ha_cluster_mock.manage_resources.assert_called_once_with(crm_mock)
+
+        crm_patch.stop()
+
+    def test_add_service_ips_no_config(self):
+        """Test that function passes when there are no IPs to configure."""
+        ha_cluster_mock = mock.MagicMock()
+
+        with mock.patch.object(designate_bind.reactive, 'endpoint_from_flag',
+                               return_value=ha_cluster_mock):
+            designate_bind.add_service_ips([])
+
+        ha_cluster_mock.manage_resources.assert_not_called()
+        # Assert that we also clear flag that signals that service_ips config
+        # option is configured and charm is waiting for hacluster relation.
+        designate_bind.reactive.clear_flag.assert_called_with(
+            designate_bind.AWAITING_HACLUSTER_FLAG
+        )
+
+    def test_add_service_ips_no_hacluster(self):
+        """Test that function sets correct flag if it's missing hacluster."""
+    with mock.patch.object(designate_bind.reactive, 'endpoint_from_flag',
+                           return_value=None):
+        designate_bind.add_service_ips([IPv4Address("10.0.0.1")])
+
+    designate_bind.reactive.set_flag.assert_called_with(
+        designate_bind.AWAITING_HACLUSTER_FLAG
+    )
 
 
 class TestEgressSubnets(Helper):
@@ -481,3 +606,56 @@ class TestDesignateBindCharm(Helper):
         bob.assert_called_once_with(
             '/etc/apparmor.d/disable/usr.sbin.named',
             'w')
+
+    def test_asses_status_passes(self):
+        """Test scenario where _assess_status passes without blocking charm."""
+        self.patch_object(designate_bind.openstack_charm.OpenStackCharm,
+                          '_assess_status')
+        self.patch_object(designate_bind, 'parse_service_ip_config')
+        designate_bind.reactive.is_flag_set.return_value = False
+
+        charm_ = designate_bind.DesignateBindCharm()
+        charm_._assess_status()
+
+        designate_bind.parse_service_ip_config.assert_called_once_with()
+        designate_bind.hookenv.status_set.assert_not_called()
+
+    def test_assess_status_bad_ip_config(self):
+        """Test that unit is blocked if 'service_ips' config has bad format."""
+        self.patch_object(designate_bind.openstack_charm.OpenStackCharm,
+                          '_assess_status')
+        self.patch_object(designate_bind, 'parse_service_ip_config')
+        designate_bind.parse_service_ip_config.side_effect = ValueError
+
+        charm_ = designate_bind.DesignateBindCharm()
+        charm_._assess_status()
+
+        expected_state = designate_bind.hookenv.WORKLOAD_STATES.BLOCKED
+        expected_message = ('Config option "service_ips" does not have an '
+                            'expected format.')
+
+        designate_bind.hookenv.status_set.assert_called_once_with(
+            expected_state, expected_message
+        )
+
+    def test_assess_status_blocks_on_awaiting_hacluster(self):
+        """Test that unit is blocked if it's awaiting hacluster relation.
+
+        This occurs when 'service_ips' config option is set but relation with
+        hacluster charm is missing.
+        """
+        self.patch_object(designate_bind.openstack_charm.OpenStackCharm,
+                          '_assess_status')
+        self.patch_object(designate_bind, 'parse_service_ip_config')
+        designate_bind.reactive.is_flag_set.return_value = True
+
+        charm_ = designate_bind.DesignateBindCharm()
+        charm_._assess_status()
+
+        expected_state = designate_bind.hookenv.WORKLOAD_STATES.BLOCKED
+        expected_message = ('Failed to configure "service_ips", hacluster '
+                            'relation is missing.')
+
+        designate_bind.hookenv.status_set.assert_called_once_with(
+            expected_state, expected_message
+        )

@@ -46,3 +46,15 @@ options:
       in a situation that upstream DNS servers do not support DNSSEC,
       and BIND9 reports "Unable to fetch DNSKEY". For production
       deployments, it's encouraged to keep DNSSEC enabled.
+  service_ips:
+    default: ""
+    type: string
+    description: |
+      Service IPs are list of Virtual IPs that will be assigned to the
+      designate-bind units. This option accepts comma separated list of
+      IPv4 or IPv6 addresses that belong to the at least one directly
+      connected network.
+      This option also requires that relation with subordinate hacluster
+      unit is created, otherwise the designate-bind units go into the the
+      blocked state until the hacluster relation is made, or this option
+      is uncofigured.

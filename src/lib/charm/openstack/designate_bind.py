@@ -20,6 +20,9 @@ import subprocess
 import hmac
 import hashlib
 import base64
+import json
+
+from ipaddress import IPv4Address, ip_address
 
 import charms_openstack.charm as openstack_charm
 import charms_openstack.adapters as adapters
@@ -28,7 +31,9 @@ import charmhelpers.core.decorators as ch_decorators
 import charmhelpers.core.hookenv as hookenv
 import charmhelpers.core.host as host
 
+from charmhelpers.core.hookenv import WORKLOAD_STATES
 from charmhelpers.contrib.network import ip as ch_ip
+from relations.hacluster.interface_hacluster.common import CRM
 
 
 LEADERDB_SECRET_KEY = 'rndc_key'
@@ -37,6 +42,9 @@ LEADERDB_SYNC_TIME_KEY = 'sync_time'
 CLUSTER_SYNC_KEY = 'sync_request'
 WWW_DIR = '/var/www/html'
 ZONE_DIR = '/var/cache/bind'
+SERVICE_IP_PREFIX = "service_ip_"
+COLOCATION_NAME = "service_ip_colocation"
+AWAITING_HACLUSTER_FLAG = "service_ip.waiting_for_hacluster"
 
 
 def install():
@@ -149,6 +157,107 @@ def assess_status():
     @returns: None
     """
     DesignateBindCharm.singleton.assess_status()
+
+
+def parse_service_ip_config():
+    """Parse "service_ips" config option value into IP address objects.
+
+    Expected format is comma separated IPv4 or IPv6 addresses.
+
+    :raises: ValueError if "service_ips" is not in expected format.
+    :return: List of IPv4 or IPv6 addresses
+    :rtype: list[IPv4Address | ipaddress.IPv6Address]
+    """
+    raw_service_ips = hookenv.config('service_ips')
+    service_ips = []
+    for ip_addr in raw_service_ips.split(","):
+        if ip_addr:
+            service_ips.append(ip_address(ip_addr.strip()))
+    return service_ips
+
+
+def remove_service_ips(exclude=None):
+    """Remove all service IPs except those stated in the `exclude` parameter.
+
+    :param exclude: List of IPs that should be kept alive.
+    :type exclude: list[IPv4Address | ipaddress.IPv6Address]
+    :return: None
+    """
+    if exclude is None:
+        exclude = []
+    hookenv.log('Clearing Service IPs.', hookenv.INFO)
+    ha_cluster = reactive.endpoint_from_flag('ha.connected')
+
+    if not ha_cluster:
+        hookenv.log('No relation with "ha-cluster" charm. Nothing to clear.',
+                    hookenv.WARNING)
+        return
+
+    managed_resources = json.loads(ha_cluster.get_local("json_resources") or
+                                   "{}")
+    excluded_ips = [str(addr) for addr in exclude]
+    for resource in managed_resources:
+        if resource.startswith(SERVICE_IP_PREFIX):
+            value = resource[len(SERVICE_IP_PREFIX):]
+            if value not in excluded_ips:
+                ha_cluster.delete_resource(resource)
+
+    ha_cluster.remove_colocation(COLOCATION_NAME)
+    ha_cluster.bind_resources()
+
+
+def add_service_ips(service_ips):
+    """Configure (virtual) service IPs on the unit.
+
+    These IPs and their assignment are handled by corosync (hacluster charm)
+    and by default they will spread to every unit of designate-bind. Id there
+    are more IPs configured than there are units, some units will ned up with
+    more than one IP.
+
+    :param service_ips: List of Service IPs to configure
+    :type service_ips: list[IPv4Address | ipaddress.IPv6Address]
+    :return: None
+    """
+    ha_cluster = reactive.endpoint_from_flag('ha.connected')
+
+    if not service_ips:
+        hookenv.log('Skipping Service IP configuration. No IP addresses '
+                    'provided', hookenv.DEBUG)
+        reactive.clear_flag(AWAITING_HACLUSTER_FLAG)
+        return
+    if not ha_cluster:
+        hookenv.log('Failed to configure service IPs. "ha-cluster" relation '
+                    'missing', hookenv.ERROR)
+        reactive.set_flag(AWAITING_HACLUSTER_FLAG)
+        return
+
+    crm = CRM()
+    all_ip_resources = []
+
+    for ip in service_ips:
+        resource_name = "{}{}".format(SERVICE_IP_PREFIX, ip)
+        addr_type = "IPaddr2" if isinstance(ip, IPv4Address) else "IPv6addr"
+        all_ip_resources.append(resource_name)
+        crm.primitive(resource_name, 'ocf:heartbeat:{}'.format(addr_type),
+                      params='ip={}'.format(ip), op='monitor interval="10s"')
+
+    crm.colocation(COLOCATION_NAME, -10, *all_ip_resources)
+    ha_cluster.manage_resources(crm)
+
+
+def reconfigure_service_ips():
+    """Configure IPs on units according to 'service_ips' config option."""
+    hookenv.log("Configuring Service IPs: {}".format(
+        hookenv.config('service_ips')), hookenv.INFO)
+    try:
+        service_ips = parse_service_ip_config()
+    except ValueError:
+        pass
+    else:
+        remove_service_ips(exclude=service_ips)
+        add_service_ips(service_ips)
+    finally:
+        assess_status()
 
 
 @adapters.adapter_property("dns-backend")
@@ -508,3 +617,32 @@ class DesignateBindCharm(openstack_charm.OpenStackCharm):
         if not os.path.isfile(apparmor_file):
             open(apparmor_file, 'w').close()
             host.service_reload('apparmor')
+
+    def _assess_status(self):
+        """Overall unit status assessment.
+
+        This override appends additional status checks related to the
+        service_ip configuration.
+        """
+        super()._assess_status()
+        # Subordinate charm "ha-cluster" is needed for management of Service
+        # IPs. If service IPs are configured but there's no relation with
+        # "hacluster", put unit into blocked state.
+        try:
+            parse_service_ip_config()
+        except ValueError:
+            bad_format_msg = ('Config option "service_ips" does not have '
+                              'an expected format.')
+            hookenv.status_set(WORKLOAD_STATES.BLOCKED, bad_format_msg)
+            return
+
+        if reactive.is_flag_set(AWAITING_HACLUSTER_FLAG):
+            hookenv.log('Config option "service_ips" is set but relation with '
+                        '"hacluster" is missing. Either add subordinate '
+                        '"hacluster" charm or unconfigure "service_ips" '
+                        'option',
+                        hookenv.ERROR)
+            hookenv.status_set(WORKLOAD_STATES.BLOCKED, 'Failed to configure '
+                                                        '"service_ips", '
+                                                        'hacluster relation is'
+                                                        ' missing.')

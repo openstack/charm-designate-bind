@@ -13,6 +13,7 @@ dev_bundles:
 
 tests:
   - zaza.openstack.charm_tests.designate.tests.DesignateTests
+  - zaza.openstack.charm_tests.designate_bind.tests.DesignateBindServiceIPsTest
 
 target_deploy_status:
   nrpe:
