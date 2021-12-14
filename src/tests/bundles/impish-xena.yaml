@@ -102,6 +102,11 @@ applications:
     charm: cs:nrpe
     series: focal
 
+  designate-bind-hacluster:
+    charm: cs:hacluster
+    options:
+      cluster_count: 1
+
 relations:
   - - 'keystone:shared-db'
     - 'keystone-mysql-router:shared-db'
@@ -141,3 +146,6 @@ relations:
 
   - - 'designate:nrpe-external-master'
     - 'nrpe:nrpe-external-master'
+
+  - - 'designate-bind'
+    - 'designate-bind-hacluster'

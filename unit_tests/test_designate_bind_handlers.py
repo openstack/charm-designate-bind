@@ -15,6 +15,12 @@
 import unittest
 
 from unittest import mock
+import sys
+
+# Modules imported from other interfaces/layers need to be mocked
+sys.modules[
+    'relations.hacluster.interface_hacluster.common'
+] = mock.MagicMock()
 
 import reactive.designate_bind_handlers as handlers
 
@@ -120,6 +126,9 @@ class TestDesignateHandlers(unittest.TestCase):
                 ('zones.initialised', ),
             ],
             'assess_status': [('zones.initialised', )],
+            'service_ips_changed': [('config.changed.service_ips', )],
+            'hacluster_connected': [('ha.connected', )],
+            'hacluster_departed': [('ha-relation-departed',)],
         }
         when_not_patterns = {
             'install_packages': [('installed', )],
@@ -236,3 +245,42 @@ class TestDesignateHandlers(unittest.TestCase):
         self.is_leader.return_value = True
         handlers.process_sync_requests('hacluster')
         self.process_requests.assert_called_once_with('hacluster')
+
+    def test_configure_service_ips(self):
+        """Test that change of 'service_ips' triggers reconfiguration."""
+        self.patch(handlers.designate_bind, 'reconfigure_service_ips')
+
+        handlers.service_ips_changed()
+
+        handlers.designate_bind.reconfigure_service_ips.assert_called_once()
+
+    def test_hacluster_connected_reconfigure_service_ips(self):
+        """Test that hacluster connect hook configures 'service_ips' on join.
+
+        When relation with hacluster is joined and 'service_ips' are waiting
+        for configuration, 'reconfigure_service_ips' should be trigerred.
+        """
+        self.patch(handlers.designate_bind, 'reconfigure_service_ips')
+        self.patch(handlers.reactive, 'is_flag_set', True)
+        self.patch(handlers.reactive, 'clear_flag')
+
+        handlers.hacluster_connected(None)
+
+        handlers.designate_bind.reconfigure_service_ips.assert_called_once()
+        handlers.reactive.clear_flag.assert_called_once_with(
+            handlers.designate_bind.AWAITING_HACLUSTER_FLAG
+        )
+
+    def test_hacluster_connect_no_service_ips(self):
+        """Test that hacluster connect hook passes if there are no IPs.
+
+        If there are no service_ips configured when the hacluster joins,
+        this hook should not execute anything.
+        """
+        self.patch(handlers.designate_bind, 'reconfigure_service_ips')
+        self.patch(handlers.reactive, 'is_flag_set', False)
+        self.patch(handlers.reactive, 'clear_flag')
+
+        handlers.hacluster_connected(None)
+
+        handlers.designate_bind.reconfigure_service_ips.assert_not_called()
