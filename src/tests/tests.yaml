@@ -1,22 +1,13 @@
 charm_name: designate-bind
 
 smoke_bundles:
-  - focal-ussuri
+  - focal-xena
 
 gate_bundles:
-  - bionic-queens
-  - bionic-stein
-  - bionic-ussuri
-  - focal-ussuri
-  - focal-victoria
-  - focal-wallaby
   - focal-xena
-  - hirsute-wallaby
   - impish-xena
 
 dev_bundles:
-  - bionic-rocky
-  - bionic-train
   - focal-yoga
   - jammy-yoga
 
@@ -30,6 +21,5 @@ target_deploy_status:
 
 tests_options:
   force_deploy:
-    - hirsute-wallaby
     - impish-xena
     - jammy-yoga
