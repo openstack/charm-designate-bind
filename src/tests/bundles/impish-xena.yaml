@@ -1,6 +1,8 @@
 variables:
   openstack-origin: &openstack-origin distro
 
+local_overlay_enabled: False
+
 series: impish
 
 machines:
@@ -70,7 +72,7 @@ applications:
     channel: latest/edge
 
   designate-bind:
-    charm: ../../../designate-bind
+    charm: ../../../designate-bind.charm
     num_units: 1
     # NOTE(ajkavanagh) apparently it has no openstack origin!
     #options:
