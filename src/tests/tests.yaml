@@ -1,26 +1,13 @@
 charm_name: designate-bind
 
 smoke_bundles:
-  - bionic-train
+  - focal-xena
 
 gate_bundles:
-  - xenial-mitaka
-  - bionic-queens
-  - bionic-stein
-  - bionic-ussuri
-  - focal-ussuri
   - focal-wallaby
   - focal-xena
-  - hirsute-wallaby
 
 dev_bundles:
-  - trusty-mitaka
-  - xenial-ocata
-  - xenial-pike
-  - xenial-queens
-  - bionic-train
-  - bionic-rocky
-  - focal-victoria
   - impish-xena
 
 tests:
