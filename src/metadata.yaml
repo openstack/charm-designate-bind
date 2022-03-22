@@ -13,7 +13,6 @@ tags:
 - dns
 series:
 - focal
-- impish
 subordinate: false
 extra-bindings:
   dns-frontend:

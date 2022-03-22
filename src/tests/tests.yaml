@@ -7,8 +7,7 @@ gate_bundles:
   - focal-wallaby
   - focal-xena
 
-dev_bundles:
-  - impish-xena
+dev_bundles: []
 
 tests:
   - zaza.openstack.charm_tests.designate.tests.DesignateTests
@@ -19,5 +18,4 @@ target_deploy_status:
     workload-status-message-prefix: "Nagios server not configured or related"
 
 tests_options:
-  force_deploy:
-    - impish-xena
+  force_deploy: []
