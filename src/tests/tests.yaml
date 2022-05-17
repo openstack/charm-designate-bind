@@ -1,27 +1,13 @@
 charm_name: designate-bind
 
 smoke_bundles:
-  - bionic-train
+  - focal-wallaby
 
 gate_bundles:
-  - xenial-mitaka
-  - bionic-queens
-  - bionic-stein
-  - bionic-ussuri
-  - focal-ussuri
-  - focal-wallaby
-  - focal-xena
-  - hirsute-wallaby
-
-dev_bundles:
-  - trusty-mitaka
-  - xenial-ocata
-  - xenial-pike
-  - xenial-queens
-  - bionic-train
-  - bionic-rocky
   - focal-victoria
-  - impish-xena
+  - focal-wallaby
+
+dev_bundles: []
 
 tests:
   - zaza.openstack.charm_tests.designate.tests.DesignateTests
@@ -32,5 +18,4 @@ target_deploy_status:
     workload-status-message-prefix: "Nagios server not configured or related"
 
 tests_options:
-  force_deploy:
-    - impish-xena
+  force_deploy: []
