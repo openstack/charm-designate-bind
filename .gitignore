@@ -6,3 +6,4 @@ interfaces
 __pycache__
 .testrepository
 .stestr
+*.charm
