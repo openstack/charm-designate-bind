@@ -1,9 +1,9 @@
 variables:
-  openstack-origin: &openstack-origin cloud:focal-yoga
+  openstack-origin: &openstack-origin distro
 
 local_overlay_enabled: False
 
-series: focal
+series: kinetic
 
 machines:
   '0':
@@ -17,7 +17,7 @@ machines:
   '5':
   '6':
   '7':
-    series: bionic
+    series: focal
   '8':
 
 applications:
@@ -83,8 +83,8 @@ applications:
   memcached:
     charm: ch:memcached
     num_units: 1
-    # holding charm at bionic as it isn't available for focal+ yet
-    series: bionic
+    # Note that holding memcached at focal as it's not available at kinetic yet.
+    series: focal
     to:
     - '7'
 
@@ -99,12 +99,14 @@ applications:
     channel: latest/edge
 
   nrpe:
-    charm: cs:nrpe
+    charm: ch:nrpe
+    channel: latest/edge
 
   designate-bind-hacluster:
-    charm: cs:hacluster
+    charm: ch:hacluster
     options:
       cluster_count: 1
+    channel: latest/edge
 
 relations:
   - - 'keystone:shared-db'
