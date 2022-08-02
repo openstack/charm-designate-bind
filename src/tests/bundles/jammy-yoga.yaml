@@ -100,7 +100,6 @@ applications:
 
   nrpe:
     charm: cs:nrpe
-    series: focal
 
 relations:
   - - 'keystone:shared-db'

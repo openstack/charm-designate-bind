@@ -160,7 +160,7 @@
       "type": "python_module",
       "package": "Jinja2",
       "vcs": null,
-      "version": "2.10.1"
+      "version": "3.1.1"
     },
     {
       "type": "python_module",
