@@ -5,7 +5,7 @@
       "item": "layer:options",
       "url": "https://github.com/juju-solutions/layer-options.git",
       "vcs": null,
-      "branch": "refs/heads/master",
+      "branch": "fcdcea4e5de3e1556c24e6704607862d0ba00a56",
       "commit": "fcdcea4e5de3e1556c24e6704607862d0ba00a56"
     },
     {
@@ -13,7 +13,7 @@
       "item": "layer:basic",
       "url": "https://github.com/juju-solutions/layer-basic.git",
       "vcs": null,
-      "branch": "refs/heads/master",
+      "branch": "a3ff62c32c993d80417f6e093e3ef95e42f62083",
       "commit": "a3ff62c32c993d80417f6e093e3ef95e42f62083"
     },
     {
@@ -21,7 +21,7 @@
       "item": "layer:openstack",
       "url": "https://github.com/openstack/charm-layer-openstack",
       "vcs": null,
-      "branch": "refs/heads/master",
+      "branch": "207bac8bec837edc6a4d6003f51d5b59d2d75adb",
       "commit": "207bac8bec837edc6a4d6003f51d5b59d2d75adb"
     },
     {
@@ -37,7 +37,7 @@
       "item": "interface:tls-certificates",
       "url": "https://github.com/juju-solutions/interface-tls-certificates",
       "vcs": null,
-      "branch": "refs/heads/master",
+      "branch": "d9850016d930a6d507b9fd45e2598d327922b140",
       "commit": "d9850016d930a6d507b9fd45e2598d327922b140"
     },
     {
@@ -45,7 +45,7 @@
       "item": "interface:bind-rndc",
       "url": "https://github.com/openstack/charm-interface-bind-rndc",
       "vcs": null,
-      "branch": "refs/heads/master",
+      "branch": "4c69d8ceb1af495156ff5bd9e3111bd8d34a347e",
       "commit": "4c69d8ceb1af495156ff5bd9e3111bd8d34a347e"
     },
     {
@@ -53,7 +53,7 @@
       "item": "interface:openstack-ha",
       "url": "https://github.com/openstack/charm-interface-openstack-ha",
       "vcs": null,
-      "branch": "refs/heads/master",
+      "branch": "a3b00e5b5fd857d130698c5cfe4b918877f0ab80",
       "commit": "a3b00e5b5fd857d130698c5cfe4b918877f0ab80"
     },
     {
