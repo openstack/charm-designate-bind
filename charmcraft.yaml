@@ -7,9 +7,13 @@ parts:
       - git
       - python3-dev
       - libffi-dev
+      - libssl-dev
+      - rustc
+      - cargo
     build-environment:
       - CHARM_INTERFACES_DIR: /root/project/interfaces/
       - CHARM_LAYERS_DIR: /root/project/layers/
+      - MAKEFLAGS: -j$(nproc)
     override-build: |
       apt-get install ca-certificates -y
       tox -e build-reactive
