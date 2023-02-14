@@ -1,5 +1,5 @@
 variables:
-  openstack-origin: &openstack-origin distro
+  openstack-origin: &openstack-origin cloud:jammy-antelope
 
 local_overlay_enabled: False
 
@@ -68,7 +68,7 @@ applications:
     channel: latest/edge
 
   designate-bind:
-    charm: ../../../designate-bind_ubuntu-22.04-amd64_ubuntu-22.10-amd64.charm
+    charm: ../../../designate-bind_ubuntu-22.04-amd64_ubuntu-22.10-amd64_ubuntu-23.04-amd64.charm
     num_units: 1
     # NOTE(ajkavanagh) apparently it has no openstack origin!
     #options:
