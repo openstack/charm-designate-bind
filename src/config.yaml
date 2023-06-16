@@ -58,3 +58,11 @@ options:
       unit is created, otherwise the designate-bind units go into the the
       blocked state until the hacluster relation is made, or this option
       is uncofigured.
+  allow_transfer_nets:
+    type: string
+    description: |
+      String containing a list of allowed networks of hosts for
+      zone transfer through the designate-bind servers, spearated by
+      semicolons: e.g., "10.0.0.0/8;172.16.0.0/12;192.168.0.0/16". The
+      option is equivalent to "allow-transfer" in BIND9.
+      allow-transfer is disabled by default.

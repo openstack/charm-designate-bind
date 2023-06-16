@@ -11,6 +11,12 @@ acl allow_recursion {
 };
 {%- endif %}
 
+{% if options.allow_transfer_nets -%}
+acl allow_transfer {
+        {{ options.allow_transfer_nets }};
+};
+{%- endif %}
+
 options {
         directory "/var/cache/bind";
 
@@ -64,6 +70,12 @@ options {
         allow-notify { {{ dns_backend.control_ips }}; };
         {% if options.allowed_nets -%}
         allow-query { allow_query; };
+        {%- endif %}
+
+        {% if options.allow_transfer_nets -%}
+        allow-transfer { allow_transfer; };
+        {%- else -%}
+        allow-transfer { none; };
         {%- endif %}
 };
 {%- if options.debug %}
