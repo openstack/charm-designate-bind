@@ -3,7 +3,7 @@ variables:
 
 local_overlay_enabled: False
 
-series: lunar
+series: mantic
 
 machines:
   '0':
@@ -68,7 +68,7 @@ applications:
     channel: latest/edge
 
   designate-bind:
-    charm: ../../../designate-bind_ubuntu-23.04-amd64.charm
+    charm: ../../../designate-bind_ubuntu-23.10-amd64.charm
     num_units: 1
     # NOTE(ajkavanagh) apparently it has no openstack origin!
     #options:
@@ -79,7 +79,7 @@ applications:
   memcached:
     charm: ch:memcached
     num_units: 1
-    # Note that holding memcached at focal as it's not available at lunar yet.
+    # Note that holding memcached at focal as it's not available at mantic yet.
     series: focal
     to:
     - '7'
