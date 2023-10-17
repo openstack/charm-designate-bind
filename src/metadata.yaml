@@ -13,7 +13,6 @@ tags:
 - dns
 series:
 - jammy
-- lunar
 - mantic
 subordinate: false
 extra-bindings:
