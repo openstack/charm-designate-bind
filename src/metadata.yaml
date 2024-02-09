@@ -9,12 +9,10 @@ description: |
   This charm provides BIND9 as a backend for integration with OpenStack
   Designate, providing DNSaaS in an OpenStack cloud.
 tags:
-- openstack
-- dns
+  - openstack
+  - dns
 series:
-- jammy
-- lunar
-- mantic
+  - jammy
 subordinate: false
 extra-bindings:
   dns-frontend:
