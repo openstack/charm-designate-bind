@@ -49,6 +49,9 @@ class Helper(test_utils.PatchHelper):
         # simply the CompareHostReleases to just return then string for
         # comparisons. (won't work for xenial/bionic)
         self.ch_core_host.CompareHostReleases.side_effect = lambda x: x
+        charm = designate_bind.DesignateBindCharm(release='icehouse')
+        self.patch("charms_openstack.charm.core.default_get_charm_instance",
+                   new=lambda *_, **__: charm)
         self.patch('charms_openstack.charm.core._singleton', new=None)
 
 
@@ -81,6 +84,9 @@ class TestOpenStackDesignateBind(Helper):
         self.ch_core_host.lsb_release.return_value = {
             "DISTRIB_CODENAME": "focal"
         }
+        actual_charm = designate_bind.DesignateBindCharm(release='icehouse')
+        self.patch("charms_openstack.charm.core.default_get_charm_instance",
+                   new=lambda *_, **__: actual_charm)
         charm = designate_bind.DesignateBindCharm.singleton
         self.assertEqual(charm.services, ["named"])
         for v in charm.restart_map.values():
