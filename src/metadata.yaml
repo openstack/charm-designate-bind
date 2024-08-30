@@ -11,8 +11,6 @@ description: |
 tags:
   - openstack
   - dns
-series:
-  - jammy
 subordinate: false
 extra-bindings:
   dns-frontend:

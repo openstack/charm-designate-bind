@@ -1,5 +1,4 @@
 psutil
-setuptools < 50.0
 
 git+https://github.com/openstack/charms.openstack.git#egg=charms.openstack
 
