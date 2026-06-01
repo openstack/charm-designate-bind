@@ -68,7 +68,7 @@ applications:
     channel: 2023.2/edge
 
   designate-bind:
-    charm: ../../../designate-bind_ubuntu-22.04-amd64.charm
+    charm: ../../../charm-designate-bind_ubuntu@22.04-amd64.charm
     num_units: 1
     # NOTE(ajkavanagh) apparently it has no openstack origin!
     #options:
