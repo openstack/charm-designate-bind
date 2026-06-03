@@ -148,7 +148,7 @@
       "type": "python_module",
       "package": "PyYAML",
       "vcs": null,
-      "version": "6.0"
+      "version": "6.0.1"
     },
     {
       "type": "python_module",
