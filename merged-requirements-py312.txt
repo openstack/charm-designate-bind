@@ -43,7 +43,7 @@ dict2colander==0.2
     # via charm-tools
 distlib==0.4.1
     # via virtualenv
-filelock==3.29.0
+filelock==3.29.1
     # via virtualenv
 fixtures==4.3.2
     # via stestr
