@@ -22,7 +22,7 @@
       "url": "https://github.com/openstack/charm-layer-openstack",
       "vcs": null,
       "branch": "refs/heads/master",
-      "commit": "e0f700eacb026235e1a04e7cbc28dfbe9d4e4520"
+      "commit": "cb0cb321564c69d699aae31ff74aa0128490edd9"
     },
     {
       "type": "layer",
