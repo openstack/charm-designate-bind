@@ -47,9 +47,9 @@ bcrypt==5.0.0
     # via paramiko
 blessings==1.7
     # via charm-tools
-boto3==1.43.21
+boto3==1.43.22
     # via zaza-openstack
-botocore==1.43.21
+botocore==1.43.22
     # via
     #   boto3
     #   s3transfer
@@ -127,7 +127,7 @@ dogpile-cache==1.5.0
     #   python-ironicclient
 fasteners==0.20
     # via oslo-concurrency
-filelock==3.29.0
+filelock==3.29.1
     # via virtualenv
 frozenlist==1.8.0
     # via
