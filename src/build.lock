@@ -21,8 +21,8 @@
       "item": "layer:openstack",
       "url": "https://github.com/openstack/charm-layer-openstack",
       "vcs": null,
-      "branch": "7c671b0696977f455616565d956895b2f890464b",
-      "commit": "7c671b0696977f455616565d956895b2f890464b"
+      "branch": "cb0cb321564c69d699aae31ff74aa0128490edd9",
+      "commit": "cb0cb321564c69d699aae31ff74aa0128490edd9"
     },
     {
       "type": "layer",
